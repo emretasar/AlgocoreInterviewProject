@@ -67,6 +67,10 @@ void MainWindow::setupConnections() {
 
     connect(m_orderManager, &OrderManager::ordersUpdated,
             this, &MainWindow::onOrdersUpdated);
+
+    connect(m_strategyGenerator, &StrategyGenerator::strategyGenerated,
+            m_orderGenerator, &OrderGenerator::handleNewStrategy);
+
 }
 
 
