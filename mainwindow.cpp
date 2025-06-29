@@ -3,7 +3,7 @@
 #include <QSplitter>
 #include <QItemSelectionModel>
 #include <QHeaderView>
-
+#include <QPushButton>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -28,6 +28,7 @@ MainWindow::~MainWindow() {
 void MainWindow::setupUi() {
     QWidget* central = new QWidget(this);
 
+    // Create splitter and tables
     m_strategyTable->setModel(m_strategyModel);
     m_strategyTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_strategyTable->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -44,13 +45,28 @@ void MainWindow::setupUi() {
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 2);
 
-    QVBoxLayout* layout = new QVBoxLayout(central);
+    // Create QPushButton
+    QPushButton* showAllOrdersButton = new QPushButton("Show All Orders", this);
+
+    // Connect button to logic
+    connect(showAllOrdersButton, &QPushButton::clicked, this, [this]() {
+        m_strategyTable->clearSelection();                  // Visually deselect
+        m_selectedStrategyId = -1;                          // Reset state
+        m_orderModel->setOrders(m_orderManager->getAllOrders());  // Show all orders
+    });
+
+    // Layout: vertical (splitter above, button below)
+    QVBoxLayout* layout = new QVBoxLayout;
     layout->addWidget(splitter);
+    layout->addWidget(showAllOrdersButton);
+
+    central->setLayout(layout);
     setCentralWidget(central);
 
     resize(1000, 600);
     setWindowTitle("Strategy/Order Monitor");
 }
+
 
 void MainWindow::setupConnections() {
     connect(m_strategyGenerator, &StrategyGenerator::strategyGenerated,
@@ -75,25 +91,7 @@ void MainWindow::setupConnections() {
 
 
 void MainWindow::onStrategiesUpdated(const QList<StrategyUpdate>& strategies) {
-    int selectedStrategyId = -1;
-    QModelIndex currentIndex = m_strategyTable->currentIndex();
-    if (currentIndex.isValid()) {
-        const StrategyUpdate& selected = m_strategyModel->getStrategyAt(currentIndex.row());
-        selectedStrategyId = selected.unique_strategy_id;
-    }
-
     m_strategyModel->setStrategies(strategies);
-
-    if (selectedStrategyId != -1) {
-        for (int row = 0; row < m_strategyModel->rowCount(); ++row) {
-            const StrategyUpdate& s = m_strategyModel->getStrategyAt(row);
-            if (s.unique_strategy_id == selectedStrategyId) {
-                QModelIndex index = m_strategyModel->index(row, 0);
-                m_strategyTable->setCurrentIndex(index);
-                break;
-            }
-        }
-    }
 }
 
 void MainWindow::onOrdersUpdated(const QList<OrderUpdate>& /*orders*/) {
@@ -113,6 +111,5 @@ void MainWindow::onStrategySelected(const QModelIndex& current, const QModelInde
 
     const StrategyUpdate& selected = m_strategyModel->getStrategyAt(current.row());
     m_selectedStrategyId = selected.unique_strategy_id;
-
     m_orderModel->setOrders(m_orderManager->getOrdersForStrategy(m_selectedStrategyId));
 }
