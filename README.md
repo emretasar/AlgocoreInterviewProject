@@ -2,7 +2,7 @@
 
 This is a Qt-based C++ desktop application developed as part of an interview process. The app simulates part of a trading system UI where strategies and their associated orders are monitored in real time. Strategy and order updates are generated asynchronously and reflected live in the UI.
 
-You can view the demonstration video of the project from the following unlisted [https://youtu.be/QpsI2FNMlLo](Youtube link).
+You can view the demonstration video of the project from the following unlisted [Youtube link](https://youtu.be/QpsI2FNMlLo).
 
 ---
 
